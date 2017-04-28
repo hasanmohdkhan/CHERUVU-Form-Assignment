@@ -16,12 +16,7 @@ public class Config {
     public static final String KEY_FAR_VILLAGE = "Village";
     public static final String KEY_FAR_MANDAL = "Mandal";
 
-    //JSON Tags
-    public static final String TAG_JSON_ARRAY="result";
-    public static final String TAG_ID = "id";
-    public static final String TAG_NAME = "name";
-    public static final String TAG_DESG = "desg";
-    public static final String TAG_SAL = "salary";
+
 
 
 
