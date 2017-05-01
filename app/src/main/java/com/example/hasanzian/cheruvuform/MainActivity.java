@@ -1,6 +1,5 @@
 package com.example.hasanzian.cheruvuform;
 
-import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -12,20 +11,25 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity  {
 
-     private  EditText sNo,FarmerName,FarmerAge;
+    ConnectionClass connectionClass;
+    private  EditText sNo,FarmerName,FarmerAge;
     private Button submit;
     private Spinner villageSpinner,mandelSpinner;
     public TextView WARN_SNO,WARN_NAME,WARN_AGE;
+    ProgressBar pbbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,12 +37,16 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        //connection sql
+        connectionClass = new ConnectionClass();
 
         sNo=(EditText)findViewById(R.id.sno_edit);
         FarmerAge=(EditText)findViewById(R.id.farmer_age_edit);
         FarmerName  =(EditText)findViewById(R.id.farmer_name_edit);
         submit=(Button)findViewById(R.id.button_submit);
         villageSpinner=(Spinner) findViewById(R.id.village_spinner);
+        pbbar = (ProgressBar) findViewById(R.id.pbbar);
+        pbbar.setVisibility(View.GONE);
 
         mandelSpinner=(Spinner)findViewById(R.id.mandal_spinner);
         // text View casting
@@ -199,11 +207,14 @@ public class MainActivity extends AppCompatActivity  {
 
 
 
-        submit.setOnClickListener(new View.OnClickListener() {
+        submit.setOnClickListener(
+                new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(v == submit){
-                    addForm();
+                    AddPro addPro = new AddPro();
+                    addPro.execute("");
+
                     sNo.setText("");
                     FarmerAge.setText("");
                     FarmerName.setText("");
@@ -221,51 +232,64 @@ public class MainActivity extends AppCompatActivity  {
 
     }
 
-    private void addForm() {
-        //addEmployee()
 
-        final String Village=villageSpinner.getSelectedItem().toString();
-        final String Mandal=mandelSpinner.getSelectedItem().toString();
-
-        final  String Sno=sNo.getText().toString().trim();
-        final  String farmerName=FarmerName.getText().toString().trim();
-        final  String farmerAge=FarmerAge.getText().toString().trim();
+    public class AddPro extends AsyncTask<String, String, String> {
 
 
-    class AddForm extends AsyncTask<Void,Void,String>{
-     ProgressDialog loading;
+
+        String z = "";
+        Boolean isSuccess = false;
+       String Sno =sNo.getText().toString();
+       String Name=FarmerName.getText().toString();
+       String Age=FarmerAge.getText().toString();
+        String Village=villageSpinner.getSelectedItem().toString();
+        String Mandal=mandelSpinner.getSelectedItem().toString();
+
+
+
+
         @Override
         protected void onPreExecute() {
-            super.onPreExecute();
-            loading = ProgressDialog.show(MainActivity.this,"Adding...","Wait...",false,false);
+            pbbar.setVisibility(View.VISIBLE);
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            loading.dismiss();
-            Toast.makeText(MainActivity.this,s,Toast.LENGTH_LONG).show();
+        protected void onPostExecute(String r) {
+            pbbar.setVisibility(View.GONE);
+            Toast.makeText(MainActivity.this, r, Toast.LENGTH_SHORT).show();
+            if(isSuccess==true) {
+                Toast.makeText(MainActivity.this, "ADDED", Toast.LENGTH_SHORT).show();
+            }
+
         }
 
         @Override
-        protected String doInBackground(Void... v) {
-            HashMap<String,String> params = new HashMap<>();
-            params.put(Config.KEY_FAR_SNO,Sno);
-            params.put(Config.KEY_FAR_NAME,farmerName);
-            params.put(Config.KEY_FAR_AGE,farmerAge);
-            params.put(Config.KEY_FAR_MANDAL,Mandal);
-            params.put(Config.KEY_FAR_VILLAGE,Village);
+        protected String doInBackground(String... params) {
+            if (Name.trim().equals("") || Sno.trim().equals(""))
+                z = "Please Enter Value In Form";
+            else {
+                try {
+                    Connection con = connectionClass.CONN();
+                    if (con == null) {
+                        z = "Error in connection with SQL server";
+                    } else {
 
 
-            RequestHandler rh = new RequestHandler();
-            String res = rh.sendPostRequest(Config.URL_ADD, params);
-            return res;
+                        String query = "insert into Form (Sno ,FarmerName ,FarmerAge ,Mandal ,Village)  values ('" + Sno + "','" + Name + "','" + Age + "','" + Mandal + "','" + Village + "' )";
+                        PreparedStatement preparedStatement = con.prepareStatement(query);
+                        preparedStatement.executeUpdate();
+                        z = "Added Successfully";
+                        isSuccess = true;
+                    }
+                } catch (Exception ex) {
+                    isSuccess = false;
+                    z = "Exceptions";
+                }
+            }
+            return z;
         }
     }
 
-        AddForm ae = new AddForm();
-        ae.execute();
-    }
 
 
 

@@ -6,7 +6,7 @@ package com.example.hasanzian.cheruvuform;
 
 public class Config {
     //Address of our scripts of the CRUD
-    public static final String URL_ADD="http://192.168.43.56/android_connect/addEmp.php ";
+    public static final String URL_ADD="http://192.168.56.1/xampp/test.php";
 
 
     //Keys that will be used to send the request to php scripts
